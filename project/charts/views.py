@@ -25,7 +25,6 @@ def revenueTechStacks(request):
 def companyScalesChart(request):
     return render(request, 'charts/companyScalesChart.html')
 
-
 #우대사항 차트 view
 def preferredQualificationChart(request):
     return render(request, 'charts/preferredQualificationChart.html')
