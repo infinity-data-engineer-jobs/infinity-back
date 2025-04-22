@@ -5,6 +5,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 from django.db.models import Q,F
 from wentedCrawl.transform import transform_tech
+from django.http import JsonResponse
+import re
 
 #index 페이지 view
 def index(request):
@@ -90,4 +92,46 @@ class NoticeTeckStckInfoViewSet(generics.ListAPIView):
             processed_data.append(item)
         
         return Response(processed_data)  # 데이터를 JSON으로 반환
+
+
+# company_headcount 문자열에서 숫자만 추출하는 파서
+def parse_headcount(raw):
+    if not raw:
+        return None
+    digits = re.sub(r'[^0-9]', '', str(raw))
+    try:
+        return int(digits) if digits else None
+    except:
+        return None
+
+# company_headcount 범주화 + 개수 카운트
+def company_headcount_distribution(request):
+    queryset = CompanyInfo.objects.values_list('company_headcount', flat=True)
+
+    # 범주 구간 정의
+    ranges = [
+        (0, 200),
+        (200, 400),
+        (400, 600),
+        (600, 800),
+        (800, 1000),
+        (1000, 1200)
+    ]
+    bins = {f"{start}~{end}": 0 for start, end in ranges}
+    bins["1200 이상"] = 0
+
+    for raw in queryset:
+        headcount = parse_headcount(raw)
+        if headcount is None:
+            continue
+        found = False
+        for start, end in ranges:
+            if start <= headcount < end:
+                bins[f"{start}~{end}"] += 1
+                found = True
+                break
+        if not found:
+            bins["1200 이상"] += 1
+
+    return JsonResponse(bins)
     
