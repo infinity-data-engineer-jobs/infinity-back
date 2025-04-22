@@ -1,0 +1,146 @@
+<!-- 기술 스택 차트 -->
+<!DOCTYPE html> 
+<html lang="ko">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>∞</title>
+        <!-- CSS 파일 -->
+        <link rel="stylesheet" href="{% static 'css/common.css' %}">
+        <link rel="stylesheet" href="{% static 'css/charts.css' %}">
+        <!-- JavaScript 파일 -->
+        <script src="{% static 'js/common.js' %}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            let noticeTechStack = [];
+            let revenueTechStacksChart = null;
+            let colorMap = {}; // 항목 이름별 색상 저장 객체
+
+            function getRandomColor(label) {
+                if (!colorMap[label]) {
+                    // 새로운 항목이면 색상 생성 및 저장
+                    let r = Math.floor(Math.random() * 256); // 0~255 사이의 랜덤 값
+                    let g = Math.floor(Math.random() * 256);
+                    let b = Math.floor(Math.random() * 256);
+                    colorMap[label] = `rgba(${r}, ${g}, ${b}, 0.5)`; // 투명도 0.5
+                }
+                return colorMap[label]; // 저장된 색상 반환
+            }
+
+            window.addEventListener("load", function () {
+
+                ajax_get("{% url 'noticeTechStack' %}", (data) => {
+                    noticeTechStack = data;
+
+                    // 막대 차트 생성
+                    let ctxBubble = document.getElementById('revenueTechStacksChart');
+
+                    let colors = [
+                        'rgba(255, 99, 132, 0.5)',  // 빨강
+                        'rgba(54, 162, 235, 0.5)', // 파랑
+                        'rgba(255, 206, 86, 0.5)', // 노랑
+                        'rgba(75, 192, 192, 0.5)', // 청록
+                        'rgba(153, 102, 255, 0.5)', // 보라
+                        'rgba(255, 159, 64, 0.5)'  // 주황
+                    ];
+
+                    function getRandomColor(stackName) {
+                        let hash = stackName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                        let r = (hash * 137) % 256;
+                        let g = (hash * 149) % 256;
+                        let b = (hash * 163) % 256;
+                        return `rgba(${r}, ${g}, ${b}, 0.5)`;
+                    }
+
+                    // 회사 규모와 매출 데이터를 10단위, 억 단위로 그룹화
+                    let groupedData = {};
+                    noticeTechStack.forEach(item => {
+                        let sizeGroup = Math.floor((item.company_headcount || 0) / 10) * 10; // 인원수 10단위 그룹화
+                        let revenueGroup = Math.floor((item.company_revenue || 0) / 100000000); // 매출 억 단위 그룹화
+                        let techStacks = item.notice_tech_stack ? item.notice_tech_stack.split('\n') : [];
+                        
+                        techStacks.forEach(stack => {
+                            stack = stack.trim();
+                            if (!stack) return;
+
+                            let key = `${sizeGroup}-${revenueGroup}`;
+                            if (!groupedData[key]) {
+                                groupedData[key] = { size: sizeGroup, revenue: revenueGroup, techStacks: {} };
+                            }
+                            groupedData[key].techStacks[stack] = (groupedData[key].techStacks[stack] || 0) + 1;
+                        });
+                    });
+
+                    // 버블 차트 데이터 생성
+                    let bubbleData = Object.values(groupedData).map(group => {
+                        let topTechStack = Object.entries(group.techStacks).sort((a, b) => b[1] - a[1])[0] || ["None", 0];
+                        let stackName = topTechStack[0];
+
+                        return {
+                            x: group.size || 0, // 회사 인원수
+                            y: group.revenue || 0, // 회사 매출 (억 단위)
+                            r: Math.sqrt(topTechStack[1] || 0) * 5, // 기술 스택 개수에 따라 버블 크기 조정
+                            label: stackName, // 기술 스택 이름
+                            backgroundColor: getRandomColor(stackName) // 항목 이름에 따른 색상
+                        };
+                    });
+
+                    // 버블 차트 생성
+                    revenueTechStacksChart = new Chart(ctxBubble, {
+                        type: 'bubble',
+                        data: {
+                            datasets: bubbleData.map(data => ({
+                                label: data.label,
+                                data: [data],
+                                backgroundColor: data.backgroundColor,
+                                borderColor: data.backgroundColor.replace('0.5', '1'), // 테두리 색상
+                                borderWidth: 1
+                            }))
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    display: false // 범례 숨기기
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            let data = context.raw;
+                                            return `기술 스택: ${data.label}, 인원수: ${data.x}, 매출: ${data.y}, 공고 수: ${Math.round(data.r / 5) ** 2}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: '회사 인원수 (10단위)'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: '회사 매출 (억 단위)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+                document.querySelector('.page_lodding').style.display = 'none'; // 로딩 바 숨기기
+            });
+        </script>
+    </head>
+    <body>
+        <div class="chartbox">
+            <canvas id="revenueTechStacksChart"></canvas>
+        </div>
+    </body>
+    <div class="page_lodding">
+        <div class="spinner"></div>
+    </div>
+</html>
+
+

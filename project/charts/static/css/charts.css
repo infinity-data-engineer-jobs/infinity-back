@@ -1,0 +1,12 @@
+*{
+    overflow: hidden;    ;
+}
+.chartbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
