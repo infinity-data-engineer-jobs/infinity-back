@@ -7,4 +7,5 @@ urlpatterns = [
     path('company/', views.CompanyInfoViewSet.as_view(),name="companyInfo"),
     path('notice/', views.NoticeInfoViewSet.as_view(),name="noticeInfo"),
     path('notice/techstack/', views.NoticeTeckStckInfoViewSet.as_view(),name="noticeTechStack"),
+    path('transform/', views.transform_data, name="transform_data")
 ]

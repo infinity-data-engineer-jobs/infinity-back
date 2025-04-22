@@ -1,12 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import NoticeInfo, CompanyInfo
 from .serializers import NoticeInfoSerializer, CompanyInfoSerializer
 from rest_framework import generics
 from rest_framework.response import Response
 from django.db.models import Q,F
+from wentedCrawl.transform import transform_tech
 
 def index(request):
     return render(request, 'index.html')
+
+def transform_data(request):
+    transform_tech.transform_to_techstack()
+    return redirect('/')
 
 class NoticeInfoViewSet(generics.ListAPIView):
     queryset = NoticeInfo.objects.all()
