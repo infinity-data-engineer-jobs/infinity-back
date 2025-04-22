@@ -49,20 +49,45 @@
                     let techStackLabels = top10TechStacks.map(item => item[0]); // 상위 10개의 기술 스택 이름
                     let techStackData = top10TechStacks.map(item => item[1]);  // 상위 10개의 기술 스택 개수
                     
-                    let width = 1200;
-                    let height = 800;
+                    const top5TechStacks = top10TechStacks.slice(0, 5);  // 상위 5개만 선택
+
+                    // 순위 목록 생성
+                    const rankList = document.getElementById('techRankList');
+                    top5TechStacks.forEach((tech, index) => {
+                        const li = document.createElement('li');
+                        li.style.cssText = `
+                            margin: 10px 0;
+                            padding: 10px;
+                            background-color: rgba(255, 255, 255, 0.1);
+                            border-radius: 5px;
+                            font-size: 16px;
+                            color: #333;
+                        `;
+                        li.innerHTML = `
+                            <span style="font-weight: bold; color: #FF6B6B;">${index + 1}위</span>
+                            <span style="margin-left: 10px;">${tech[0]}</span>
+                            <span style="margin-left: 10px; color: #666;">(${tech[1]}건)</span>
+                        `;
+                        rankList.appendChild(li);
+                    });
+
+                    let width = 750;
+                    let height = 500;
 
                     let maxSize = Math.max(...top10TechStacks.map(item => item[1])); // 최대 크기
                     let minFontSize = 10; // 최소 폰트 크기
-                    let maxFontSize = 50; // 최대 폰트 크기
-
+                    let maxFontSize = 30; // 최대 폰트 크기
+                    
                     let layout = d3.layout.cloud()
                         .size([width, height])
-                        .words(top10TechStacks.map(([key, value]) => ({
+                        .words(top10TechStacks.flatMap(([key, value]) =>
+                        Array.from({ length: 8 }, () => ({  
                             text: key,
-                            size: (value / maxSize) * (maxFontSize - minFontSize) + minFontSize // 최소/최대 크기 설정
-                        })))
+                            size: (value / maxSize) * (maxFontSize - minFontSize) + minFontSize
+                            }))
+                        ))
                         .padding(1)
+                        .spiral("rectangular")
                         .rotate(() => [45, 135, 270][Math.floor(Math.random() * 3)]) // 45도, 135도, 270도 중 랜덤 선택
                         .fontSize(d => d.size)
                         .on("end", draw);
@@ -91,8 +116,28 @@
         </script>
     </head>
     <body>
-        <div class="chartbox">
+<!--    <div class="chartbox">
             <div id="wordCloud"></div>
+        </div>-->
+
+        <!-- HTML 부분 수정 -->
+        <div class="wordcloud-container" style="
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            max-width: 1000px; 
+            margin: 0 auto;
+            padding: 20px;">
+        <div id="wordCloud" style="flex: 3;"></div>
+        <div id="rankList" style="
+            flex: 1; 
+            padding: 20px; 
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 15px; color: #333;">Top 5 기술 스택</h3>
+            <ul id="techRankList" style="list-style: none; padding: 0; margin: 0;"></ul>
+        </div>
         </div>
     </body>
     <div class="page_lodding">
