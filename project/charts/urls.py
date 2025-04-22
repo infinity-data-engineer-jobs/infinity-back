@@ -10,6 +10,7 @@ urlpatterns = [
     path('companyScalesChart/', views.companyScalesChart,name="companyScalesChart"),
     path('mainWorkChart/', views.mainWorkChart,name="mainWorkChart"),
     path('preferredQualificationChart/', views.preferredQualificationChart,name="preferredQualificationChart"),
+    path('preferred-qualification/', views.PreferredQualificationInfoViewSet.as_view(), name='preferredQualification'),
     path('company/', views.CompanyInfoViewSet.as_view(),name="companyInfo"),
     path('notice/', views.NoticeInfoViewSet.as_view(),name="noticeInfo"),
     path('notice/techstack/', views.NoticeTeckStckInfoViewSet.as_view(),name="noticeTechStack"),
