@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import NoticeInfo, CompanyInfo
 from .serializers import NoticeInfoSerializer, CompanyInfoSerializer
 from rest_framework import generics
 from rest_framework.response import Response
 from django.db.models import Q,F
+from wentedCrawl.transform import transform_tech
+
 #index 페이지 view
 def index(request):
     return render(request, 'index.html')
@@ -23,6 +25,7 @@ def revenueTechStacks(request):
 def companyScalesChart(request):
     return render(request, 'charts/companyScalesChart.html')
 
+
 #우대사항 차트 view
 def preferredQualificationChart(request):
     return render(request, 'charts/preferredQualificationChart.html')
@@ -32,6 +35,10 @@ def mainWorkChart(request):
     return render(request, 'charts/mainWorkChart.html')
 
 # 공고 정보 전체 조회
+def transform_data(request):
+    transform_tech.transform_to_techstack()
+    return redirect('/')
+
 class NoticeInfoViewSet(generics.ListAPIView):
     queryset = NoticeInfo.objects.all()
     serializer_class = NoticeInfoSerializer
