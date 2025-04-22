@@ -1,1 +1,71 @@
-<!-- branch test-->
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>주요 업무 차트</title>
+        <!-- CSS 파일 -->
+        <link rel="stylesheet" href="{% static 'css/common.css' %}">
+        <link rel="stylesheet" href="{% static 'css/charts.css' %}">
+        <!-- JavaScript 파일 -->
+        <script src="{% static 'js/common.js' %}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <div class="chartbox">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="page_lodding">
+            <div class="spinner"></div>
+        </div>
+
+        <script>
+            window.addEventListener("load", function () {
+                ajax_get("{% url 'mainWorkChartData' %}", function(data) {
+                    let labels = [];
+                    let totals = [];
+
+                    data.forEach(item => {
+                        labels.push(item.label);
+                        totals.push(item.total);
+                    });
+
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    const myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Total',
+                                data: totals,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: '주요 업무'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: '빈도수'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+                document.querySelector('.page_lodding').style.display = 'none';
+            });
+        </script>
+    </body>
+</html>
