@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
-from .models import NoticeInfo, CompanyInfo, MainWorkChart
-from .serializers import NoticeInfoSerializer, CompanyInfoSerializer
+from .models import NoticeInfo, CompanyInfo, MainWorkChart, PreferredQualificationInfo
+from .serializers import NoticeInfoSerializer, CompanyInfoSerializer, PreferredQualificationInfoSerializer
 from rest_framework import generics
 from rest_framework.response import Response
 from django.db.models import Q,F, Sum, Count
@@ -25,7 +25,6 @@ def revenueTechStacks(request):
 #회사 규모 차트 view
 def companyScalesChart(request):
     return render(request, 'charts/companyScalesChart.html')
-
 
 #우대사항 차트 view
 def preferredQualificationChart(request):
@@ -113,3 +112,6 @@ class NoticeTeckStckInfoViewSet(generics.ListAPIView):
         
         return Response(processed_data)  # 데이터를 JSON으로 반환
     
+class PreferredQualificationInfoViewSet(generics.ListAPIView):
+    queryset = PreferredQualificationInfo.objects.all()
+    serializer_class = PreferredQualificationInfoSerializer

@@ -11,6 +11,7 @@ urlpatterns = [
     path('mainWorkChart/', views.mainWorkChart, name="mainWorkChart"),
     path('mainWorkChartData/', views.main_work_chart_data, name="mainWorkChartData"),  # 라벨 데이터 API
     path('preferredQualificationChart/', views.preferredQualificationChart,name="preferredQualificationChart"),
+    path('preferred-qualification/', views.PreferredQualificationInfoViewSet.as_view(), name='preferredQualification'),
     path('company/', views.CompanyInfoViewSet.as_view(),name="companyInfo"),
     path('notice/', views.NoticeInfoViewSet.as_view(),name="noticeInfo"),
     path('notice/techstack/', views.NoticeTeckStckInfoViewSet.as_view(),name="noticeTechStack"),
