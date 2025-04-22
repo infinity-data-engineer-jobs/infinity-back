@@ -34,3 +34,11 @@ class NoticeInfo(models.Model):
     mod_dt = models.DateTimeField(auto_now_add=True)                #수정일시
 
 
+class MainWorkChart(models.Model):
+    # row_id = models.IntegerField(db_column='id')                    #주요업무 행번호PK
+    notice_id = models.IntegerField()                                #공고ID
+    notice_main_work = models.TextField(db_column="main_work")       #주요업무
+    label = models.IntegerField()
+
+    class Meta:
+        db_table = 'charts_mainwork'  # 테이블 이름 설정
