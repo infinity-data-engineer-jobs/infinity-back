@@ -36,6 +36,27 @@
             const ctxBar = document.getElementById('myChart');
             const ctxDoughnut = document.getElementById('techStackChart');
 
+            document.body.addEventListener('wheel', (e) => {
+                console.log(e.deltaY);
+                // if (e.srcElement.tagName === 'BODY') {
+                    const mainContainer = document.querySelector('.mainContainer');
+                    if (mainContainer) {
+                        const currentScroll = mainContainer.scrollTop;
+                        const scrollAmount = 1000; // 스크롤 이동량
+                        console.log("move!");
+                        if (e.deltaY > 0) {
+                            // 아래로 스크롤
+                            mainContainer.scrollTo({ top: currentScroll + scrollAmount, behavior: 'smooth' });
+                        } else {
+                            // 위로 스크롤
+                            mainContainer.scrollTo({ top: currentScroll - scrollAmount, behavior: 'smooth' });
+                        }
+                    }
+                // }
+            });
+
+
+
             ajax_get("{% url 'noticeTechStack' %}", (data) => {
                 noticeTechStack = data;
 
@@ -348,24 +369,40 @@
 </script>
 </head>
 <body>
-    <div class="mainContainer"></section>
-        <h1 class="mainTitle">그래서 데이터 엔지니어가 뭔데?</h1>
-        <p class="subTitle">데이터엔지니어? 저희가 알려드릴게요! 직접 데이터 확인해 볼까요?</p>
-        <section class="ChartContainer">
+    <section class="mainContainer">
+        <div class="ChartContainer">
             <article>
-                <canvas id="myChart" style="max-width: 450px; max-height: 350px;"></canvas>
+                <h1 class="mainTitle">그래서 데이터 엔지니어가 뭔데?</h1><br>
+                <p class="subTitle">데이터엔지니어? 저희가 알려드릴게요! 직접 데이터 확인해 볼까요?</p>
             </article>
+        </div>
+        <div class="ChartContainer">
             <article>
-                <canvas id="techStackChart" style="max-width: 450px; max-height: 350px;"></canvas>
+                <canvas id="myChart"></canvas>
             </article>
+        </div>
+        <div class="ChartContainer">
+            <article>
+                <canvas id="techStackChart"></canvas>
+            </article>
+        </div>
+        <div class="ChartContainer">
             <article>
                 <div id="wordCloud"></div>
             </article>
+        </div>
+        <div class="ChartContainer">
             <article>
-                <canvas id="bubbleChart" style="max-width: 450px; max-height: 350px;"></canvas>
+                <canvas id="bubbleChart"></canvas>
             </article>
         </div>
-    </div>
+        <div class="ChartContainer">
+            <article>
+                <h2 class="mainTitle">엔지니어가 어떤것인지 알게 되셧나요?</h1><br>
+                <p class="subTitle">데이터엔지니어! 당신도 할수 있습니다!</p>
+            </article>
+        </div>
+    </section>
 </body>
 <div class="page_lodding">
     <div class="spinner"></div>

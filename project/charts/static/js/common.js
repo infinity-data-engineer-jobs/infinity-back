@@ -12,3 +12,4 @@ ajax_get = function(url,func){
     }
     xhr.send();
 }
+
