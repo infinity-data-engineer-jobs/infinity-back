@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
-from .models import NoticeInfo, CompanyInfo, PreferredQualificationInfo
+from .models import NoticeInfo, CompanyInfo, MainWorkChart, PreferredQualificationInfo
 from .serializers import NoticeInfoSerializer, CompanyInfoSerializer, PreferredQualificationInfoSerializer
 from rest_framework import generics
 from rest_framework.response import Response
-from django.db.models import Q,F
+from django.db.models import Q,F, Sum, Count
 from wentedCrawl.transform import transform_tech
+from django.http import JsonResponse
 
 #index 페이지 view
 def index(request):
@@ -37,6 +38,27 @@ def mainWorkChart(request):
 def transform_data(request):
     transform_tech.transform_to_techstack()
     return redirect('/')
+
+
+# 주요 업무 라벨 집계 (리스트 형식으로 데이터 반환)
+def main_work_chart_data(request):
+    # label별로 개수 계산
+    main_work_data = MainWorkChart.objects.values('label') \
+                                          .annotate(total=Count('label')) \
+                                          .order_by('label')
+
+    # 데이터 가공 (label과 total만 반환)
+    data = []
+    for entry in main_work_data:
+        # print(entry)  # 콘솔 확인
+        data.append({
+            'label': entry['label'],
+            'total': entry['total'],
+        })
+
+    return JsonResponse(data, safe=False)
+
+
 
 class NoticeInfoViewSet(generics.ListAPIView):
     queryset = NoticeInfo.objects.all()
