@@ -45,6 +45,11 @@ class CompanyInfoSerializer(serializers.ModelSerializer):
             'mod_dt',
             'notices',
             ]
+
+class PreferredQualificationInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = PreferredQualificationInfo
+        fields = ['representative_sentence', 'frequency', 'sentences']
 # class QuestionSerializer(serializers.Serializer):
 #    id = serializers.IntegerField(read_only=True)
 #    question_text = serializers.CharField(max_length=200)
