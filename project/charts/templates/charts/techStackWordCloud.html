@@ -1,0 +1,103 @@
+<!-- 기술 스택 차트 -->
+<!DOCTYPE html> 
+<html lang="ko">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>∞</title>
+        <!-- CSS 파일 -->
+        <link rel="stylesheet" href="{% static 'css/common.css' %}">
+        <link rel="stylesheet" href="{% static 'css/charts.css' %}">
+        <!-- JavaScript 파일 -->
+        <script src="{% static 'js/common.js' %}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- D3.js 라이브러리 -->
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <!-- d3-cloud 라이브러리 -->
+        <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.7/build/d3.layout.cloud.min.js"></script>
+        <script>
+            let noticeTechStack = [];
+            let techStackCounts = {};
+            let techStackCountChart = null;
+
+            window.addEventListener("load", function () {
+                
+                let ctxDoughnut = document.getElementById('techStackChart');
+
+                ajax_get("{% url 'noticeTechStack' %}", (data) => {
+                    noticeTechStack = data;
+
+                    // 기술 스택 데이터 처리 (줄바꿈 기준으로 분리)
+                    noticeTechStack.forEach(item => {
+                        let techStacks = item.notice_tech_stack ? item.notice_tech_stack.split('\n') : [];
+                        techStacks.forEach(stack => {
+                            stack = stack.trim(); // 공백 제거
+                            if (stack) {
+                                techStackCounts[stack] = (techStackCounts[stack] || 0) + 1;
+                            }
+                        });
+                    });
+                    
+                    // 상위 20개의 기술 스택 추출 및 나머지 그룹화
+                    let sortedTechStacks = Object.entries(techStackCounts)
+                        .sort((a, b) => b[1] - a[1]); // 값 기준으로 내림차순 정렬
+                    
+                    let top10TechStacks = sortedTechStacks.slice(0, 20); // 상위 10개 추출
+                    let othersTechStacks = sortedTechStacks.slice(20); // 나머지 추출
+
+                    let techStackLabels = top10TechStacks.map(item => item[0]); // 상위 10개의 기술 스택 이름
+                    let techStackData = top10TechStacks.map(item => item[1]);  // 상위 10개의 기술 스택 개수
+                    
+                    let width = 1200;
+                    let height = 800;
+
+                    let maxSize = Math.max(...top10TechStacks.map(item => item[1])); // 최대 크기
+                    let minFontSize = 10; // 최소 폰트 크기
+                    let maxFontSize = 50; // 최대 폰트 크기
+
+                    let layout = d3.layout.cloud()
+                        .size([width, height])
+                        .words(top10TechStacks.map(([key, value]) => ({
+                            text: key,
+                            size: (value / maxSize) * (maxFontSize - minFontSize) + minFontSize // 최소/최대 크기 설정
+                        })))
+                        .padding(1)
+                        .rotate(() => [45, 135, 270][Math.floor(Math.random() * 3)]) // 45도, 135도, 270도 중 랜덤 선택
+                        .fontSize(d => d.size)
+                        .on("end", draw);
+
+                    layout.start();
+
+                    function draw(words) {
+                        d3.select("#wordCloud")
+                            .append("svg")
+                            .attr("width", layout.size()[0])
+                            .attr("height", layout.size()[1])
+                            .append("g")
+                            .attr("transform", `translate(${layout.size()[0] / 2},${layout.size()[1] / 2})`)
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", d => `${d.size}px`)
+                            .style("fill", () => `hsl(${Math.random() * 360}, 100%, 50%)`) // 랜덤 색상
+                            .attr("text-anchor", "middle")
+                            .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+                            .text(d => d.text);
+                    }
+                });
+                document.querySelector('.page_lodding').style.display = 'none'; // 로딩 바 숨기기
+            });
+        </script>
+    </head>
+    <body>
+        <div class="chartbox">
+            <div id="wordCloud"></div>
+        </div>
+    </body>
+    <div class="page_lodding">
+        <div class="spinner"></div>
+    </div>
+</html>
+
+

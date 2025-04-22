@@ -1,0 +1,143 @@
+<!-- 기술 스택 차트 -->
+<!DOCTYPE html> 
+<html lang="ko">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>∞</title>
+        <!-- CSS 파일 -->
+        <link rel="stylesheet" href="{% static 'css/common.css' %}">
+        <link rel="stylesheet" href="{% static 'css/charts.css' %}">
+        <!-- JavaScript 파일 -->
+        <script src="{% static 'js/common.js' %}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            let noticeTechStack = [];
+            let techStackCounts = {};
+            let techStackCountChart = null;
+
+            window.addEventListener("load", function () {
+                
+                let ctxDoughnut = document.getElementById('techStackChart');
+
+                ajax_get("{% url 'noticeTechStack' %}", (data) => {
+                    noticeTechStack = data;
+
+                    // 기술 스택 데이터 처리 (줄바꿈 기준으로 분리)
+                    noticeTechStack.forEach(item => {
+                        let techStacks = item.notice_tech_stack ? item.notice_tech_stack.split('\n') : [];
+                        techStacks.forEach(stack => {
+                            stack = stack.trim(); // 공백 제거
+                            if (stack) {
+                                techStackCounts[stack] = (techStackCounts[stack] || 0) + 1;
+                            }
+                        });
+                    });
+                    
+                    // 상위 20개의 기술 스택 추출 및 나머지 그룹화
+                    let sortedTechStacks = Object.entries(techStackCounts)
+                        .sort((a, b) => b[1] - a[1]); // 값 기준으로 내림차순 정렬
+                    
+                    let top10TechStacks = sortedTechStacks.slice(0, 20); // 상위 10개 추출
+                    let othersTechStacks = sortedTechStacks.slice(20); // 나머지 추출
+
+                    let techStackLabels = top10TechStacks.map(item => item[0]); // 상위 10개의 기술 스택 이름
+                    let techStackData = top10TechStacks.map(item => item[1]);  // 상위 10개의 기술 스택 개수
+                    
+                    // 나머지 합산하여 "Others" 추가
+                    // let othersCount = othersTechStacks.reduce((sum, item) => sum + item[1], 0);
+                    // if (othersCount > 0) {
+                    //     techStackLabels.push("Others");
+                    //     techStackData.push(othersCount);
+                    // }
+
+                    // 도넛 차트 생성
+                    techStackCountChart = new Chart(ctxDoughnut, {
+                        type: 'doughnut',
+                        data: {
+                            labels: techStackLabels,
+                            datasets: [{
+                                label: '기술 스택별 공고 수',
+                                data: techStackData,
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(153, 102, 255, 0.2)',
+                                    'rgba(255, 159, 64, 0.2)',
+                                    'rgba(255, 99, 71, 0.2)',
+                                    'rgba(60, 179, 113, 0.2)',
+                                    'rgba(123, 104, 238, 0.2)',
+                                    'rgba(255, 215, 0, 0.2)',
+                                    'rgba(0, 128, 128, 0.2)',
+                                    'rgba(128, 0, 128, 0.2)',
+                                    'rgba(128, 128, 0, 0.2)',
+                                    'rgba(0, 255, 255, 0.2)',
+                                    'rgba(255, 20, 147, 0.2)',
+                                    'rgba(70, 130, 180, 0.2)',
+                                    'rgba(46, 139, 87, 0.2)',
+                                    'rgba(210, 105, 30, 0.2)',
+                                    'rgba(0, 191, 255, 0.2)',
+                                    'rgba(169, 169, 169, 0.2)'
+                                    // ,'rgba(0, 0, 0, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 71, 1)',
+                                    'rgba(60, 179, 113, 1)',
+                                    'rgba(123, 104, 238, 1)',
+                                    'rgba(255, 215, 0, 1)',
+                                    'rgba(0, 128, 128, 1)',
+                                    'rgba(128, 0, 128, 1)',
+                                    'rgba(128, 128, 0, 1)',
+                                    'rgba(0, 255, 255, 1)',
+                                    'rgba(255, 20, 147, 1)',
+                                    'rgba(70, 130, 180, 1)',
+                                    'rgba(46, 139, 87, 1)',
+                                    'rgba(210, 105, 30, 1)',
+                                    'rgba(0, 191, 255, 1)',
+                                    'rgba(169, 169, 169, 1)'
+                                    // ,'rgba(0, 0, 0, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    position: 'top'
+                                },
+                                title: {
+                                    display: true,
+                                    text: '기술 스택별 공고 수 (상위 20개)'
+                                }
+                            }
+                        }
+                    });
+                    
+                    techStackCountChart.toggleDataVisibility(20)
+                    techStackCountChart.update()
+                    
+                });
+                document.querySelector('.page_lodding').style.display = 'none'; // 로딩 바 숨기기
+            });
+        </script>
+    </head>
+    <body>
+        <div class="chartbox">
+            <canvas id="techStackChart"></canvas>
+        </div>
+    </body>
+    <div class="page_lodding">
+        <div class="spinner"></div>
+    </div>
+</html>
+
+
