@@ -128,34 +128,33 @@ def parse_headcount(raw):
 def company_headcount_distribution(request):
     queryset = CompanyInfo.objects.values_list('company_headcount', flat=True)
 
-    # 범주 구간 정의
-    ranges = [
-        (0, 200),
-        (200, 400),
-        (400, 600),
-        (600, 800),
-        (800, 1000),
-        (1000, 1200)
-    ]
-    bins = {f"{start}~{end}": 0 for start, end in ranges}
-    bins["1200 이상"] = 0
+    # ✅ 새로운 범주 정의
+    bins = {
+        "50 이하": 0,
+        "50~100": 0,
+        "100~200": 0,
+        "200~500": 0,
+        "500 이상": 0
+    }
 
     for raw in queryset:
         headcount = parse_headcount(raw)
         if headcount is None:
             continue
-        found = False
-        for start, end in ranges:
-            if start <= headcount < end:
-                bins[f"{start}~{end}"] += 1
-                found = True
-                break
-        if not found:
-            bins["1200 이상"] += 1
+
+        # ✅ 범주 분류
+        if headcount <= 50:
+            bins["50 이하"] += 1
+        elif headcount <= 100:
+            bins["50~100"] += 1
+        elif headcount <= 200:
+            bins["100~200"] += 1
+        elif headcount <= 500:
+            bins["200~500"] += 1
+        else:
+            bins["500 이상"] += 1
 
     return JsonResponse(bins)
-    
-
 
 class PreferredQualificationInfoViewSet(generics.ListAPIView):
     queryset = PreferredQualificationInfo.objects.all()
@@ -196,3 +195,4 @@ def tech_Stack_data(request):
 
     # 딕셔너리로 반환
     return JsonResponse(tech_stack_counts)
+
