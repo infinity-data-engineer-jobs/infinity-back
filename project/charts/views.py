@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
-from .models import NoticeInfo, CompanyInfo
-from .serializers import NoticeInfoSerializer, CompanyInfoSerializer
+from .models import NoticeInfo, CompanyInfo, MainWorkChart, PreferredQualificationInfo
+from .serializers import NoticeInfoSerializer, CompanyInfoSerializer, PreferredQualificationInfoSerializer
 from rest_framework import generics
 from rest_framework.response import Response
-from django.db.models import Q,F
+from django.db.models import Q,F, Sum, Count
 from wentedCrawl.transform import transform_tech
 from django.http import JsonResponse
 import re
+from collections import defaultdict
 
 #index 페이지 view
 def index(request):
@@ -27,7 +28,6 @@ def revenueTechStacks(request):
 def companyScalesChart(request):
     return render(request, 'charts/companyScalesChart.html')
 
-
 #우대사항 차트 view
 def preferredQualificationChart(request):
     return render(request, 'charts/preferredQualificationChart.html')
@@ -40,6 +40,27 @@ def mainWorkChart(request):
 def transform_data(request):
     transform_tech.transform_to_techstack()
     return redirect('/')
+
+
+# 주요 업무 라벨 집계 (리스트 형식으로 데이터 반환)
+def main_work_chart_data(request):
+    # label별로 개수 계산
+    main_work_data = MainWorkChart.objects.values('label') \
+                                          .annotate(total=Count('label')) \
+                                          .order_by('label')
+
+    # 데이터 가공 (label과 total만 반환)
+    data = []
+    for entry in main_work_data:
+        # print(entry)  # 콘솔 확인
+        data.append({
+            'label': entry['label'],
+            'total': entry['total'],
+        })
+
+    return JsonResponse(data, safe=False)
+
+
 
 class NoticeInfoViewSet(generics.ListAPIView):
     queryset = NoticeInfo.objects.all()
@@ -93,7 +114,6 @@ class NoticeTeckStckInfoViewSet(generics.ListAPIView):
         
         return Response(processed_data)  # 데이터를 JSON으로 반환
 
-
 # company_headcount 문자열에서 숫자만 추출하는 파서
 def parse_headcount(raw):
     if not raw:
@@ -136,4 +156,43 @@ def company_headcount_distribution(request):
 
     return JsonResponse(bins)
 
-    
+class PreferredQualificationInfoViewSet(generics.ListAPIView):
+    queryset = PreferredQualificationInfo.objects.all()
+    serializer_class = PreferredQualificationInfoSerializer
+
+# 우대사항 데이터 엔드포인트
+def preferred_qualification_data(request):
+    preferred_qualification_data = PreferredQualificationInfo.objects.all()
+
+    # 데이터를 JSON 형식으로 가공합니다.
+    data = []
+    for entry in preferred_qualification_data:
+        data.append({
+            'representative_sentence': entry.representative_sentence,
+            'frequency': entry.frequency,
+            'sentences': entry.sentences
+        })
+
+    # JsonResponse로 데이터를 반환합니다.
+    return JsonResponse(data, safe=False)
+
+# 기술 스택 데이터 엔드포인트
+def tech_Stack_data(request):
+    # 기술 스택 데이터를 가져옴
+    queryset = CompanyInfo.objects.filter(
+        Q(notices__notice_tech_stack__isnull=False)  # notices의 notice_tech_stack이 null이 아닌 경우
+    ).values('notices__notice_tech_stack')  # notice_tech_stack을 가져옵니다.
+
+    tech_stack_counts = defaultdict(int)  # 기술 스택 카운트 초기화
+
+    # 기술 스택 데이터 처리 (줄바꿈 기준으로 분리)
+    for item in queryset:
+        tech_stacks = item['notices__notice_tech_stack'].split('\n') if item.get('notices__notice_tech_stack') else []
+        for stack in tech_stacks:
+            stack = stack.strip()  # 공백 제거
+            if stack:  # 비어있지 않으면
+                tech_stack_counts[stack] += 1
+
+    # 딕셔너리로 반환
+    return JsonResponse(tech_stack_counts)
+

@@ -1,111 +1,71 @@
-<!-- 기술 스택 차트 -->
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ko">
     <head>
         {% load static %}
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>∞</title>
+        <title>주요 업무 차트</title>
         <!-- CSS 파일 -->
         <link rel="stylesheet" href="{% static 'css/common.css' %}">
         <link rel="stylesheet" href="{% static 'css/charts.css' %}">
         <!-- JavaScript 파일 -->
         <script src="{% static 'js/common.js' %}"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <div class="chartbox">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="page_lodding">
+            <div class="spinner"></div>
+        </div>
+
         <script>
-            let noticeTechStack = [];
-            let companyScales = null;
-
             window.addEventListener("load", function () {
-                let ctxBar = document.getElementById('companyScales');
+                ajax_get("{% url 'mainWorkChartData' %}", function(data) {
+                    let labels = [];
+                    let totals = [];
 
-                ajax_get("{% url 'noticeTechStack' %}", (data) => {
-                    noticeTechStack = data;
-
-                    // 회사 인원수 데이터 처리
-                    var headcountData = noticeTechStack.map(item => Math.floor(item.company_headcount / 100) * 100);
-                    var headcountLabels = [...new Set(headcountData)].sort((a, b) => a - b);
-                    var headcountCounts = headcountLabels.map(label => headcountData.filter(count => count === label).length);
-
-                    // 회사 연봉 데이터 처리 (평균 계산)
-                    let salaryData = headcountLabels.map(label => {
-                        let filteredSalaries = noticeTechStack
-                            .filter(item => Math.floor(item.company_headcount / 100) * 100 === label)
-                            .map(item => parseFloat(item.company_salary) || 0); // 연봉이 없는 경우 0 처리
-                        let totalSalary = filteredSalaries.reduce((sum, salary) => sum + salary, 0);
-                        return filteredSalaries.length > 0 ? totalSalary / filteredSalaries.length : 0; // 평균 계산
+                    data.forEach(item => {
+                        labels.push(item.label);
+                        totals.push(item.total);
                     });
 
-                    // 막대 차트 생성
-                    companyScales = new Chart(ctxBar, {
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    const myChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: headcountLabels,
-                            datasets: [
-                                {
-                                    label: '회사수',
-                                    data: headcountCounts,
-                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                    borderColor: 'rgba(75, 192, 192, 1)',
-                                    borderWidth: 1
-                                },
-                                {
-                                    label: '회사 입사자 평균 연봉',
-                                    data: salaryData,
-                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                    borderColor: 'rgba(255, 99, 132, 1)',
-                                    borderWidth: 1,
-                                    yAxisID: 'y1' // 별도의 Y축 사용
-                                }
-                            ]
+                            labels: labels,
+                            datasets: [{
+                                label: 'Total',
+                                data: totals,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
                         },
                         options: {
+                            responsive: true,
                             scales: {
                                 x: {
-                                    ticks: {
-                                        callback: function (value, index, values) {
-                                            // X축 라벨 커스텀
-                                            return headcountLabels[index];
-                                        }
-                                    },
                                     title: {
                                         display: true,
-                                        text: '인원수'
+                                        text: '주요 업무'
                                     }
                                 },
                                 y: {
-                                    position: 'left',
+                                    beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: '회사수'
-                                    }
-                                },
-                                y1: {
-                                    position: 'right',
-                                    title: {
-                                        display: true,
-                                        text: '평균 연봉'
-                                    },
-                                    grid: {
-                                        drawOnChartArea: false // 기존 Y축과 겹치지 않도록 설정
+                                        text: '빈도수'
                                     }
                                 }
                             }
                         }
                     });
                 });
-                document.querySelector('.page_lodding').style.display = 'none'; // 로딩 바 숨기기
+                document.querySelector('.page_lodding').style.display = 'none';
             });
         </script>
-    </head>
-    <body>
-        <div class="chartbox">
-            <canvas id="companyScales"></canvas>
-        </div>
     </body>
-    <div class="page_lodding">
-        <div class="spinner"></div>
-    </div>
 </html>
-
-
