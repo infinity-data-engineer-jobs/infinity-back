@@ -14,11 +14,11 @@
     <script>
         window.addEventListener("load", function () {
             document.body.addEventListener('wheel', (e) => {
+                if(e.target.tagName === 'BODY') return;
                 const mainContainer = document.querySelector('.mainContainer');
                 if (mainContainer) {
                     const currentScroll = mainContainer.scrollTop;
-                    const scrollAmount = 1000; // 스크롤 이동량
-                    console.log("move!");
+                    const scrollAmount = window.innerHeight; // 스크롤 이동량
                     if (e.deltaY > 0) {
                         // 아래로 스크롤
                         mainContainer.scrollTo({ top: currentScroll + scrollAmount, behavior: 'smooth' });
@@ -29,75 +29,107 @@
                 }
             });
             document.querySelector('.page_lodding').style.display = 'none'; // 로딩 바 숨기기
+            
+            document.querySelector('.mainContainer').addEventListener("scrollsnapchange", (e) => {
+                childen = Array.from(e.snapTargetBlock.parentNode.children);
+                index = childen.indexOf(e.snapTargetBlock);
+                document.querySelector(".nowFocus").classList.remove("nowFocus");
+                document.querySelector(".slideSelecter .selecter:nth-child("+(index+1)+")").classList.add("nowFocus");
+            });
+            
+            Array.from(document.querySelector('.slideSelecter').children).forEach(element => {
+                element.addEventListener('click', (e) => {
+                    childen = Array.from(e.target.parentNode.children);
+                    index = childen.indexOf(e.target);
+                    console.log(index);
+                    secondSnap = document.querySelectorAll(".ChartContainer")[index]; // n 번째 snap 요소 선택
+                    console.log(secondSnap);
+                    secondSnap.scrollIntoView({ behavior: "smooth" }); // 부드럽게 스크롤
+                });
+                
+            }); 
+            
+            document.querySelector('.page_lodding').style.display = 'none'; // 로딩 바 숨기기
         });
+
+        
+
+
 </script>
 </head>
 <body>
+    
     <section class="mainContainer">
         <!-- 타이틀 -->
         <div class="ChartContainer">
-            <article>
+            <article class="title">
                 <p class="mainTitle">그래서 데이터 엔지니어가 뭔데?</p>
                 <p class="subTitle">데이터엔지니어? 저희가 알려드릴게요! 직접 데이터 확인해 볼까요?</p>
             </article>
         </div>
-        <!-- 주요 업무. -->
+
         <div class="ChartContainer">
-            <article>
+            <!-- 주요 업무. -->
+            <article class="content">
                 <p class="chartTitle">주요 업무</p>
                 <p class="chartDescription">데이터 엔지니어가 주로 하는 일이에요.</p>
                 <iframe src="{% url 'mainWorkChart' %}"></iframe>
             </article>
-        </div>
-        <!-- 우대 사항 -->
-        <div class="ChartContainer">
-            <article>
+            <!-- 우대 사항 -->
+            <article class="content">
                 <p class="chartTitle">우대 사항</p>
                 <p class="chartDescription">이런 조건을 갖추면 더 눈길을 끌 수 있어요.</p>
                 <iframe src="{% url 'preferredQualificationChart' %}"></iframe>
             </article>
         </div>
-        <!-- 회사 규모 -->
+        
         <div class="ChartContainer">
-            <article>
+            <!-- 회사 규모 -->
+            <article class="content">
                 <p class="chartTitle">회사 규모</p>
                 <p class="chartDescription">데이터 엔지니어를 찾는 회사의 규모를 정리했어요.</p>
                 <iframe src="{% url 'companyScalesChart' %}"></iframe>
             </article>
-        </div>
-        <!-- 기술 스택 -->
-        <div class="ChartContainer">
-            <article>
-                <p class="chartTitle">기술 스택</p>
-                <p class="chartDescription">데이터 엔지니어에게 많이 요구하는 기술을 모아 봤어요.</p>
-                <iframe src="{% url 'techStackChart' %}"></iframe>
-            </article>
-        </div>
-        <!-- 기술 스택(wordCloud) -->
-        <div class="ChartContainer">
-            <article>
+            <!-- 기술 스택(wordCloud) -->
+            <article class="content">
                 <p class="chartTitle">기술 스택</p>
                 <p class="chartDescription">데이터 엔지니어에게 많이 요구하는 기술을 모아 봤어요.</p>
                 <iframe src="{% url 'techStackWordCloud' %}"></iframe>
             </article>
         </div>
-        <!-- 회사 매출 별 기술 스택 -->
+        
         <div class="ChartContainer">
-            <article>
+            <!-- 기술 스택(chart) -->
+            <article class="content">
+                <p class="chartTitle">기술 스택</p>
+                <p class="chartDescription">데이터 엔지니어에게 많이 요구하는 기술을 모아 봤어요.</p>
+                <iframe src="{% url 'techStackChart' %}"></iframe>
+            </article>
+            <!-- 회사 매출 별 기술 스택 -->
+            <article class="content">
                 <p class="chartTitle">기술 분포</p>
                 <p class="chartDescription">데이터 엔지니어를 고용하는 회사 매출정보에요</p>
                 <iframe src="{% url 'revenueTechStacks' %}"></iframe>
             </article>
         </div>
+        
         <!-- 마무리 -->         
-        <div class="ChartContainer">
+        <!-- <div class="ChartContainer">
             <article>
                 <p class="mainTitle">엔지니어가 어떤것인지 알게 되셧나요?</p>
                 <p class="subTitle">데이터엔지니어! 당신도 할수 있습니다!</p>
             </article>
-        </div>
+        </div> -->
     </section>
+    <aside class="slideSelecter">
+        <div class="selecter nowFocus"></div>
+        <div class="selecter"></div>
+        <div class="selecter"></div>
+        <div class="selecter"></div>
+        <!-- <div class="selecter"></div> -->
+    </aside>
 </body>
+<div class="backgound"></div>
 <div class="page_lodding">
     <div class="spinner"></div>
 </div>

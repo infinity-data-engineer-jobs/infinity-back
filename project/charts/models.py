@@ -33,4 +33,21 @@ class NoticeInfo(models.Model):
     reg_dt = models.DateTimeField(auto_now_add=True)                #등록일시
     mod_dt = models.DateTimeField(auto_now_add=True)                #수정일시
 
+# 우대사항 정보
+class PreferredQualificationInfo(models.Model):
+    representative_sentence = models.CharField(null=True)          #대표 문장
+    frequency = models.IntegerField(null=True)                      #빈도
+    sentences = models.TextField(null=True)                         #문장 리스트
+    class Meta:
+            db_table = "charts_preferred_qualificationinfo"
+
+
+class MainWorkChart(models.Model):
+    # row_id = models.IntegerField(db_column='id')                    #주요업무 행번호PK
+    notice_id = models.IntegerField()                                #공고ID
+    notice_main_work = models.TextField(db_column="main_work")       #주요업무
+    label = models.IntegerField()
+
+    class Meta:
+        db_table = 'charts_mainwork'  # 테이블 이름 설정
 
