@@ -7,7 +7,7 @@ from django.db.models import Q,F, Sum, Count
 from wentedCrawl.transform import transform_tech
 from django.http import JsonResponse
 import re
-
+from collections import defaultdict
 
 #index 페이지 view
 def index(request):
@@ -156,6 +156,43 @@ def company_headcount_distribution(request):
     return JsonResponse(bins)
     
 
+
 class PreferredQualificationInfoViewSet(generics.ListAPIView):
     queryset = PreferredQualificationInfo.objects.all()
     serializer_class = PreferredQualificationInfoSerializer
+
+# 우대사항 데이터 엔드포인트
+def preferred_qualification_data(request):
+    preferred_qualification_data = PreferredQualificationInfo.objects.all()
+
+    # 데이터를 JSON 형식으로 가공합니다.
+    data = []
+    for entry in preferred_qualification_data:
+        data.append({
+            'representative_sentence': entry.representative_sentence,
+            'frequency': entry.frequency,
+            'sentences': entry.sentences
+        })
+
+    # JsonResponse로 데이터를 반환합니다.
+    return JsonResponse(data, safe=False)
+
+# 기술 스택 데이터 엔드포인트
+def tech_Stack_data(request):
+    # 기술 스택 데이터를 가져옴
+    queryset = CompanyInfo.objects.filter(
+        Q(notices__notice_tech_stack__isnull=False)  # notices의 notice_tech_stack이 null이 아닌 경우
+    ).values('notices__notice_tech_stack')  # notice_tech_stack을 가져옵니다.
+
+    tech_stack_counts = defaultdict(int)  # 기술 스택 카운트 초기화
+
+    # 기술 스택 데이터 처리 (줄바꿈 기준으로 분리)
+    for item in queryset:
+        tech_stacks = item['notices__notice_tech_stack'].split('\n') if item.get('notices__notice_tech_stack') else []
+        for stack in tech_stacks:
+            stack = stack.strip()  # 공백 제거
+            if stack:  # 비어있지 않으면
+                tech_stack_counts[stack] += 1
+
+    # 딕셔너리로 반환
+    return JsonResponse(tech_stack_counts)
