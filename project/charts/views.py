@@ -128,7 +128,7 @@ def parse_headcount(raw):
 def company_headcount_distribution(request):
     queryset = CompanyInfo.objects.values_list('company_headcount', flat=True)
 
-    # ✅ 새로운 범주 정의
+    #새로운 범주 정의
     bins = {
         "50 이하": 0,
         "50~100": 0,
@@ -142,7 +142,7 @@ def company_headcount_distribution(request):
         if headcount is None:
             continue
 
-        # ✅ 범주 분류
+        # 범주 분류
         if headcount <= 50:
             bins["50 이하"] += 1
         elif headcount <= 100:
