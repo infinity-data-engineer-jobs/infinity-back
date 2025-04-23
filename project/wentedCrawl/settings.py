@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'charts.apps.ChartsConfig',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +49,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware', iframe 사용을 위해 주석처리
+    'corsheaders.middleware.CorsMiddleware', 
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React 앱
 ]
 
 ROOT_URLCONF = 'wentedCrawl.urls'
